@@ -1,5 +1,6 @@
 # app/pages/trend_plot.py
 from .theme import COLORS
+from ..reference_ranges import LAB_REFERENCE
 from matplotlib.figure import Figure
 from PySide6.QtCore import QSize, QObject, QEvent
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -59,9 +60,10 @@ HEMO_ATTRS = set(HEMO_MARKERS)
 MARKERS = {**HEMO_MARKERS, **CHEM_MARKERS}
 
 _SERIES_COLOR = "#4fd6be"
+_BAND_COLOR = "#3ddc84"     # normal-range band
+_BAD_POINT = "#f7768e"      # points outside the range
 _DEFAULT_ROWS = 3
 _ROW_MIN_HEIGHT = 260
-
 
 def _value(exam, attr):
     obj = exam.hemograma if attr in HEMO_ATTRS else exam
@@ -79,15 +81,15 @@ class _WheelForwarder(QObject):
             return True   # swallow it on the canvas; the viewport already handled it
         return False
 
-
 class MarkerPlot(QFrame):
-    def __init__(self, attr, label, unit, exams, on_remove, wheel_target):
+    def __init__(self, attr, label, unit, exams, on_remove, wheel_target, ref_range=None):
         super().__init__()
         self.setObjectName("Card")
         self.setMinimumHeight(_ROW_MIN_HEIGHT)
         self.attr = attr
         self._exams = exams
         self._on_remove = on_remove
+        self._ref_range = ref_range   # (low, high) or None
 
         lay = QVBoxLayout(self)
         lay.setContentsMargins(12, 10, 12, 10)
@@ -135,10 +137,34 @@ class MarkerPlot(QFrame):
                 xs.append(e.fecha_toma_muestra)
                 ys.append(v)
 
+        # normal-range band behind the series
+        if self._ref_range:
+            lo, hi = self._ref_range
+            ax.axhspan(lo, hi, color=_BAND_COLOR, alpha=0.12, zorder=0)
+            ax.axhline(lo, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+            ax.axhline(hi, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+
         if ys:
-            ax.plot(xs, ys, marker="o", markersize=5, linewidth=1.8, color=_SERIES_COLOR)
+            ax.plot(xs, ys, marker="o", markersize=5, linewidth=1.8, color=_SERIES_COLOR, zorder=2)
+            # highlight out-of-range points
+            if self._ref_range:
+                lo, hi = self._ref_range
+                bad = [(x, y) for x, y in zip(xs, ys) if y < lo or y > hi]
+                if bad:
+                    bx, by = zip(*bad)
+                    ax.plot(bx, by, "o", markersize=6, color=_BAD_POINT, zorder=3)
         else:
             ax.text(0.5, 0.5, "No data", ha="center", va="center", transform=ax.transAxes, color=dim, fontsize=9)
+
+        if self._ref_range or ys:
+            lows, highs = [], []
+            if ys:
+                lows.append(min(ys)); highs.append(max(ys))
+            if self._ref_range:
+                lows.append(self._ref_range[0]); highs.append(self._ref_range[1])
+            ymin, ymax = min(lows), max(highs)
+            pad = (ymax - ymin) * 0.10 or (abs(ymax) * 0.10 or 1.0)
+            ax.set_ylim(ymin - pad, ymax + pad)
 
         ax.set_ylabel(unit, color=dim, fontsize=8)
         ax.tick_params(colors=dim, labelsize=8)
@@ -149,6 +175,7 @@ class MarkerPlot(QFrame):
         self.fig.autofmt_xdate(rotation=30, ha="right")
         self.fig.subplots_adjust(left=0.13, right=0.97, top=0.94, bottom=0.26)
         self.canvas.draw_idle()
+
 
 class TrendPlotWidget(QWidget):
     def __init__(self):
@@ -211,7 +238,12 @@ class TrendPlotWidget(QWidget):
         if attr is None or attr in self._shown_attrs():
             return
         label, unit = MARKERS[attr]
-        row = MarkerPlot(attr, label, unit, self._exams, on_remove=self._remove_row, wheel_target=self.scroll.viewport())
+        row = MarkerPlot(
+            attr, label, unit, self._exams,
+            on_remove=self._remove_row,
+            wheel_target=self.scroll.viewport(),
+            ref_range=LAB_REFERENCE.get(attr),
+        )
         self._rows.append(row)
         self.rows_layout.insertWidget(self.rows_layout.count() - 1, row)
         self._refresh_combo()
