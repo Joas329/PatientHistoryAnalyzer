@@ -1,0 +1,33 @@
+# .github/workflows/release.yml
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write        # required to create the GitHub Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pyinstaller
+
+      - name: Bundle with PyInstaller
+        run: pyinstaller PatientHistoryAnalyzer.spec --noconfirm
+
+      - name: Build installer (Inno Setup)
+        run: iscc /DAppVersion=${{ github.ref_name }} installer.iss
+
+      - name: Publish to Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Output/PatientHistoryAnalyzer-*-Setup.exe

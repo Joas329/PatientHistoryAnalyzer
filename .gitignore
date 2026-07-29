@@ -1,0 +1,7 @@
+# .gitignore
+pta_env/
+__pycache__/
+*.pyc
+build/
+dist/
+Output/
