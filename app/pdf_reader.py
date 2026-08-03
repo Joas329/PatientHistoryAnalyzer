@@ -200,16 +200,13 @@ def read_patient_info(file_path: str) -> Patient:
     if m := NACIMIENTO_RE.search(text):
         patient.fecha_nacimiento = coerce_date(m.group(1))
 
-    # Free sanity check: does the birth date actually produce `edad`?
+    # Free sanity check: raises EdadMismatchError only on a real conflict
+    # (swap-reconciled inversion, or a gap wider than the birthday-boundary slack).
     toma = parse_toma_datetime(text, source=file_path)
     if patient.fecha_nacimiento and patient.edad is not None:
-        if not check_edad(patient.fecha_nacimiento, patient.edad, toma):
-            raise ValueError(
-                f"{file_path}: Fe.Nac {patient.fecha_nacimiento:%d/%m/%Y} does not yield "
-                f"edad {patient.edad} at {toma:%d/%m/%Y} — dd/mm vs mm/dd may be inverted"
-            )
-    return patient
+        check_edad(patient.fecha_nacimiento, toma, patient.edad, file_path)
 
+    return patient
 
 if __name__ == "__main__":
     file_path = "./data/202616390945_MK2870011.pdf"
