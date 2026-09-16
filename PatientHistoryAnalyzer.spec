@@ -3,7 +3,7 @@
 from PyInstaller.utils.hooks import collect_data_files
 
 datas = collect_data_files("matplotlib")            # matplotlib data / fonts
-datas += [("resources/ctcae_v5.yaml", "resources")] # bundled CTCAE table
+datas += [("resources/ctcae_v5.yaml", "resources"), ("resources/reference_ranges.csv","resources"),]
 
 a = Analysis(
     ["main.py"],
