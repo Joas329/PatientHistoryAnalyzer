@@ -1,24 +1,24 @@
 """
 CTCAE v5 reference vocabulary + numeric grading.
 
-Grades are derived ONLY from the numeric criteria published in CTCAE v5.
-Criteria that CTCAE states clinically (Anemia G4 "life-threatening",
-Hyperglycemia at every grade) are never inferred from a number.
+This version uses the reference interval already attached to each LabResult by
+pdf_reader.py. It no longer depends on the removed reference_ranges.py module.
+
+Grades are derived ONLY from numeric criteria already represented here.
+Criteria that CTCAE states clinically are not inferred from a laboratory value.
 """
 
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, fields, replace
+from dataclasses import replace
 from datetime import datetime
-from typing import Iterable, TYPE_CHECKING
+from typing import Iterable
 
 import yaml
 
-from .events import Event, ReferenceRange, GRADED, NORMAL, MISSING, NO_TERM, NOT_GRADEABLE
+from .events import Event, ReferenceRange, GRADED, NORMAL, MISSING, NOT_GRADEABLE
 
-if TYPE_CHECKING:
-    from reference_ranges import LabRanges
 
 # ---------------------------------------------------------------------------
 # Units. Canonical: hemoglobin g/dL, counts 10^9/L, glucose mg/dL, ALT/AST U/L
@@ -26,8 +26,14 @@ if TYPE_CHECKING:
 _HGB_TO_GDL = {"g/dL": 1.0, "g/L": 0.1, "mmol/L": 1.6129}
 _COUNT_TO_1E9L = {"10^9/L": 1.0, "10^3/uL": 1.0, "/mm3": 1e-3, "/uL": 1e-3}
 _GLU_TO_MGDL = {"mg/dL": 1.0, "mmol/L": 18.0158}
-_PLAUSIBLE = {"hemoglobin": (1.0, 30.0), "count": (0.0, 1000.0),
-              "glucose": (5.0, 1500.0), "enzyme": (0.0, 20000.0)}
+_ENZYME_TO_UL = {"U/L": 1.0, "UI/L": 1.0}
+
+_PLAUSIBLE = {
+    "hemoglobin": (1.0, 30.0),
+    "count": (0.0, 1000.0),
+    "glucose": (5.0, 1500.0),
+    "enzyme": (0.0, 20000.0),
+}
 
 
 class UnitError(ValueError):
@@ -37,11 +43,18 @@ class UnitError(ValueError):
 def _convert(value: float, unit: str, table: dict[str, float], kind: str) -> float:
     if unit not in table:
         raise UnitError(f"unknown {kind} unit {unit!r}; expected one of {sorted(table)}")
-    out = value * table[unit]
+    out = float(value) * table[unit]
     lo, hi = _PLAUSIBLE[kind]
     if not lo <= out <= hi:
         raise UnitError(f"{kind} {value} {unit} -> {out:g} is implausible; check the unit")
     return out
+
+def _convert_reference(value: float | None, unit: str, table: dict[str, float]) -> float | None:
+    if value is None:
+        return None
+    if unit not in table:
+        raise UnitError(f"unknown reference unit {unit!r}; expected one of {sorted(table)}")
+    return float(value) * table[unit]
 
 # ---------------------------------------------------------------------------
 # Numeric bands. CTCAE writes "<1500 - 1000/mm3" meaning 1000 <= x < 1500.
@@ -83,48 +96,33 @@ def _grade_uln_multiple(term: str, x: float, uln: float) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Marker map
+# These names come directly from reference_ranges.csv.
 # ---------------------------------------------------------------------------
 _MARKER_MAP: dict[str, dict] = {
-    "hemoglobina":             {"term": "Anemia", "kind": "hgb", "unit": "g/dL"},
-    "leucocitos_totales":      {"term": "White blood cell decreased", "kind": "count", "unit": "10^3/uL", "lln": "wbc_lln"},
-    "neutrofilos_totales_anc": {"term": "Neutrophil count decreased", "kind": "count", "unit": "10^3/uL", "lln": "neutrophils_lln"},
-    "linfocitos_abs":          {"term": "Lymphocyte count decreased", "kind": "count", "unit": "10^3/uL", "lln": "lymphocytes_lln"},
-    "recuento_plaquetas":      {"term": "Platelet count decreased", "kind": "count", "unit": "10^3/uL", "lln": "platelets_lln"},
-    "glucosa":                 {"term": "Hypoglycemia", "kind": "glucose", "unit": "mg/dL"},
-    "transaminasa_piruvica":   {"term": "Alanine aminotransferase increased", "kind": "enzyme", "unit": "U/L", "uln": "alt_uln"},
-    "transaminasa_oxalacetica":{"term": "Aspartate aminotransferase increased", "kind": "enzyme", "unit": "U/L", "uln": "ast_uln"},
+    "hemoglobin": {"term": "Anemia", "kind": "hgb", "default_unit": "g/dL"},
+    "wbc": {"term": "White blood cell decreased", "kind": "count", "default_unit": "10^3/uL"},
+    "anc": {"term": "Neutrophil count decreased", "kind": "count", "default_unit": "10^3/uL"},
+    "lymphocytes_absolute": {"term": "Lymphocyte count decreased", "kind": "count", "default_unit": "10^3/uL"},
+    "platelets": {"term": "Platelet count decreased", "kind": "count", "default_unit": "10^3/uL"},
+    "glucose": {"term": "Hypoglycemia", "kind": "glucose", "default_unit": "mg/dL"},
+    "alt": {"term": "Alanine aminotransferase increased", "kind": "enzyme", "default_unit": "U/L"},
+    "ast": {"term": "Aspartate aminotransferase increased", "kind": "enzyme", "default_unit": "U/L"},
 }
+
 _NOT_GRADEABLE = {
-    "eosinofilos_abs": ("Eosinophilia", "G1 requires >ULN AND >baseline; no baseline available"),
+    "eosinophils_absolute": ("Eosinophilia", "G1 requires >ULN AND >baseline; no baseline is available"),
 }
-_NO_TERM = {
-    "hematocrito", "hematies", "volumen_corpuscular_medio",
-    "hemoglobina_corpuscular_media", "concentracion_hemoglobina_corpuscular",
-    "rdw_pct", "rdw_sd", "basofilos_abs", "monocitos_abs", "bastones_abs",
-    "neutrofilos_segmentados_abs", "volumen_plaquetario_medio",
-}
-_EXAM_LEVEL = ("glucosa", "transaminasa_piruvica", "transaminasa_oxalacetica")
-_PCT = "_pct"
 
 
 class CTCAE:
-    """CTCAE v5 vocabulary, with numeric grading that emits Event DTOs."""
+    # CTCAE v5 numeric grader operating directly on MedicalExam.results
 
-    def __init__(self, path: str, ranges: "LabRanges"):
-        if ranges is None:
-            raise ValueError(
-                "CTCAE requires lab reference ranges; pass "
-                "ranges=as_reference_ranges(). There is no default -- grading "
-                "against guessed ranges is unsafe."
-            )
-        with open(path) as f:
+    def __init__(self, path: str):
+        with open(path, encoding="utf-8") as f:
             doc = yaml.safe_load(f)
         self.version: str = doc["meta"]["source"]
-        self.ranges = ranges
         self._by_term: dict[str, dict] = {t["term"].lower(): t for t in doc["terms"]}
 
-    # -- vocabulary ---------------------------------------------------------
     def lookup(self, term: str) -> dict:
         hit = self._by_term.get(term.lower())
         if hit is None:
@@ -137,108 +135,108 @@ class CTCAE:
     def _event(self, **kw) -> Event:
         return Event(ctcae_version=self.version, **kw)
 
-    # -- grading ------------------------------------------------------------
-    def grade_marker(self, name: str, value: float | None, *,
-                     unit: str | None = None, baseline_normal: bool | None = None,
-                     observed_at: datetime | None = None) -> Event:
-        base = dict(type=name, value=value, unit=unit, normal_range=None, term=None,
-                    grade=None, observed_at=observed_at)
+    def _not_gradeable(self, result, term: str | None, reason: str, observed_at: datetime | None) -> Event:
+        return self._event(type=result.canonical_name, value=float(result.value) if result.is_numeric else result.value, unit=result.unit, normal_range=None, term=term, grade=None, observed_at=observed_at, status=NOT_GRADEABLE, reason=reason)
 
-        if value is None:
-            return self._event(**{**base, "status": MISSING})
-        if name.endswith(_PCT):
-            return self._event(**{**base, "unit": "%", "status": NOT_GRADEABLE,
-                                  "reason": "CTCAE grades absolute counts, not percentages"})
-        if name in _NO_TERM:
-            return self._event(**{**base, "status": NO_TERM,
-                                  "reason": "no CTCAE v5 term for this marker"})
+    def grade_result(self, result, *, baseline_normal: bool | None = None, observed_at: datetime | None = None) -> Event | None:
+        """Grade one LabResult. Returns None when the analyte has no implemented CTCAE rule."""
+        name = result.canonical_name
+
         if name in _NOT_GRADEABLE:
             term, why = _NOT_GRADEABLE[name]
-            return self._event(**{**base, "term": term, "status": NOT_GRADEABLE, "reason": why})
+            return self._not_gradeable(result, term, why, observed_at)
 
         rule = _MARKER_MAP.get(name)
         if rule is None:
-            raise KeyError(f"{name!r} has no CTCAE mapping; add it to _MARKER_MAP or _NO_TERM")
+            return None
 
-        unit = unit or rule["unit"]
-        term, kind = rule["term"], rule["kind"]
-        self.lookup(term)  # vocabulary and map must agree
+        if not result.is_numeric:
+            return self._event(type=name, value=None, unit=result.unit, normal_range=None, term=rule["term"], grade=None, observed_at=observed_at, status=MISSING, reason="CTCAE numeric grading requires a numeric laboratory result")
+
+        value = float(result.value)
+        unit = result.unit or rule["default_unit"]
+        term = rule["term"]
+        kind = rule["kind"]
+        self.lookup(term)
+
+        source = "reference_ranges.csv"
+        if result.method:
+            source = f"{source} · {result.method}"
 
         if kind == "hgb":
             x = _convert(value, unit, _HGB_TO_GDL, "hemoglobin")
-            lln = self.ranges.hemoglobin_lln
-            rng = ReferenceRange(lln, None, "g/dL", self.ranges.source)
-            grade, cu = _grade_decreasing(term, x, lln), "g/dL"
+            lln = _convert_reference(result.reference_low, unit, _HGB_TO_GDL)
+            if lln is None:
+                return self._not_gradeable(result, term, "No laboratory LLN was selected for this result", observed_at)
+            rng = ReferenceRange(lln, None, "g/dL", source)
+            grade = _grade_decreasing(term, x, lln)
+            canonical_unit = "g/dL"
 
         elif kind == "count":
             x = _convert(value, unit, _COUNT_TO_1E9L, "count")
-            lln = getattr(self.ranges, rule["lln"])
-            rng = ReferenceRange(lln, None, "10^9/L", self.ranges.source)
-            grade, cu = _grade_decreasing(term, x, lln), "10^9/L"
+            lln = _convert_reference(result.reference_low, unit, _COUNT_TO_1E9L)
+            if lln is None:
+                return self._not_gradeable(result, term, "No laboratory LLN was selected for this result", observed_at)
+            rng = ReferenceRange(lln, None, "10^9/L", source)
+            grade = _grade_decreasing(term, x, lln)
+            canonical_unit = "10^9/L"
 
         elif kind == "glucose":
             x = _convert(value, unit, _GLU_TO_MGDL, "glucose")
-            lln, uln = self.ranges.glucose_lln, self.ranges.glucose_uln
-            rng, cu = ReferenceRange(lln, uln, "mg/dL", self.ranges.source), "mg/dL"
+            lln = _convert_reference(result.reference_low, unit, _GLU_TO_MGDL)
+            uln = _convert_reference(result.reference_high, unit, _GLU_TO_MGDL)
+            if lln is None or uln is None:
+                return self._not_gradeable(result, term, "No complete laboratory glucose reference interval was selected", observed_at)
+            rng = ReferenceRange(lln, uln, "mg/dL", source)
+            canonical_unit = "mg/dL"
+
             if x > uln:
-                # Hyperglycemia has NO numeric criteria at any grade.
-                return self._event(**{**base, "unit": unit, "term": "Hyperglycemia",
-                                      "normal_range": rng, "canonical_value": x, "canonical_unit": cu,
-                                      "status": NOT_GRADEABLE,
-                                      "reason": "Hyperglycemia is graded by intervention, not by value"})
+                return self._event( type=name, value=value, unit=unit, normal_range=rng, term="Hyperglycemia", grade=None, observed_at=observed_at, canonical_value=x, canonical_unit=canonical_unit, status=NOT_GRADEABLE, reason="Hyperglycemia is graded by intervention, not by value")
+
             grade = _grade_decreasing(term, x, lln)
 
         elif kind == "enzyme":
-            x = _convert(value, unit, {"U/L": 1.0, "UI/L": 1.0}, "enzyme")
-            uln = getattr(self.ranges, rule["uln"])
-            rng, cu = ReferenceRange(None, uln, "U/L", self.ranges.source), "U/L"
+            x = _convert(value, unit, _ENZYME_TO_UL, "enzyme")
+            uln = _convert_reference(result.reference_high, unit, _ENZYME_TO_UL)
+            if uln is None:
+                return self._not_gradeable(result, term, "No laboratory ULN was selected for this result", observed_at)
+
+            rng = ReferenceRange(None, uln, "U/L", source)
+            canonical_unit = "U/L"
+
             if baseline_normal is None:
-                return self._event(**{**base, "unit": unit, "term": term, "normal_range": rng,
-                                      "canonical_value": x, "canonical_unit": cu,
-                                      "status": NOT_GRADEABLE,
-                                      "reason": "CTCAE grades ALT/AST vs ULN or vs baseline; "
-                                                "set exam.baseline_normal"})
+                return self._event( type=name, value=value, unit=unit, normal_range=rng, term=term, grade=None, observed_at=observed_at, canonical_value=x, canonical_unit=canonical_unit, status=NOT_GRADEABLE, reason="ALT/AST grading requires baseline status. Set exam.baseline_normal=True when baseline is known to be normal.")
+
             if not baseline_normal:
-                return self._event(**{**base, "unit": unit, "term": term, "normal_range": rng,
-                                      "canonical_value": x, "canonical_unit": cu,
-                                      "status": NOT_GRADEABLE,
-                                      "reason": "abnormal baseline: grade is a multiple of the "
-                                                "patient's own baseline, which is not stored here"})
+                return self._event( type=name, value=value, unit=unit, normal_range=rng, term=term, grade=None, observed_at=observed_at, canonical_value=x, canonical_unit=canonical_unit, status=NOT_GRADEABLE, reason="Abnormal baseline requires grading against the patient's own baseline; that baseline value is not currently stored.")
+
             grade = _grade_uln_multiple(term, x, uln)
 
         else:
-            raise AssertionError(f"unhandled kind {kind!r}")
+            raise AssertionError(f"unhandled CTCAE kind {kind!r}")
 
         status = GRADED if grade > 0 else NORMAL
         reason = None
         if grade and term in _CLINICAL_CEILING and grade == max(g for g, _, _ in _DECREASING[term]):
             reason = _CLINICAL_CEILING[term]
-        return self._event(**{**base, "unit": unit, "term": term, "normal_range": rng,
-                              "canonical_value": x, "canonical_unit": cu,
-                              "grade": grade, "status": status, "reason": reason})
+
+        return self._event(type=name, value=value, unit=unit, normal_range=rng,term=term, grade=grade, observed_at=observed_at, canonical_value=x, canonical_unit=canonical_unit, status=status, reason=reason)
 
     def grade_exam(self, exam, exam_index: int | None = None) -> list[Event]:
-        """Grade one exam and record the events on it. Idempotent."""
-        hemograma = getattr(exam, "hemograma", None)
-        if hemograma is None:
-            raise AttributeError(
-                f"{type(exam).__name__} has no .hemograma; check that MedicalExam "
-                "assigns its fields (a hand-written __init__ overrides @dataclass)"
-            )
-        exam.clear_events()  # derived data: never append to stale events
+        # Grade one exam from exam.results.
+        exam.clear_events()
         when = getattr(exam, "fecha_toma_muestra", None)
-        baseline = getattr(exam, "baseline_normal", None)
+        baseline_normal = getattr(exam, "baseline_normal", None)
 
-        names = [f.name for f in fields(hemograma)]
-        for n in names:
-            ev = self.grade_marker(n, getattr(hemograma, n), observed_at=when)
-            exam.add_event(replace(ev, exam_index=exam_index))
-        for n in _EXAM_LEVEL:
-            if not hasattr(exam, n):
+        for canonical_name in (*_MARKER_MAP.keys(), *_NOT_GRADEABLE.keys()):
+            result = exam.results.get(canonical_name)
+            if result is None:
                 continue
-            ev = self.grade_marker(n, getattr(exam, n),
-                                   baseline_normal=baseline, observed_at=when)
-            exam.add_event(replace(ev, exam_index=exam_index))
+
+            event = self.grade_result(result, baseline_normal=baseline_normal, observed_at=when)
+            if event is not None:
+                exam.add_event(replace(event, exam_index=exam_index))
+
         return exam.events
 
     def grade_patient(self, patient) -> list[Event]:
@@ -257,5 +255,6 @@ class CTCAE:
         lines += [f"  {e}" for e in sorted(graded, key=lambda e: -(e.grade or 0))]
         review = [e for e in evs if e.needs_review]
         if review:
-            lines += ["", "Requires review:"] + [f"  {e}" for e in review]
+            lines += ["", "Requires review:"]
+            lines += [f"  {e}" for e in review]
         return "\n".join(lines)

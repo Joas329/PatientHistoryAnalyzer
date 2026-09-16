@@ -1,0 +1,145 @@
+﻿category,test_name,canonical_name,age_min,age_max,time_value,time_unit,lower,upper,sex,unit,method,sample_type,condition,reference_text,notes
+Hemograma,BASÓFILOS (%) / BASOPHILS (%),basophils_percent,1,150,,Years,0.0,1.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,BASÓFILOS (10^3/uL) / BASOPHILS (10^3/uL),basophils_absolute,1,150,,Years,0.0,0.2,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,CONCENTRACIÓN DE LA HEMOGLOBINA CORPUSCULAR MEDIA / Mean Corpuscular Hemoglobin Concentration (MCHC),mchc,18,,,Years,31.0,37.0,M/F,g/dL,SYSMEX XN-1000,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,EOSINÓFILOS (%) / EOSINOPHILS (%),eosinophils_percent,1,,,Years,0.0,3.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,EOSINÓFILOS (10^3/uL) / EOSINOPHILS (10^3/uL),eosinophils_absolute,1,150,,Years,0.0,0.7,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMATÍES / Red Blood Cell Count (RBC) / ERYTHROCYTES,rbc,18,,,Years,4.5,5.5,M,10^6/uL,SYSMEX XN-1000,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMATÍES / Red Blood Cell Count (RBC) / ERYTHROCYTES,rbc,18,,,Years,4.0,4.9,F,10^6/uL,SYSMEX XN-1000,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMATOCRITO / HEMATOCRIT,hematocrit,18,,,Years,41.0,53.0,M,%,SYSMEX XN-1000 / ALTURA DE PULSO ACUMULADO,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMATOCRITO / HEMATOCRIT,hematocrit,18,,,Years,36.0,46.0,F,%,SYSMEX XN-1000 / ALTURA DE PULSO ACUMULADO,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMOGLOBINA / HEMOGLOBIN,hemoglobin,18,,,Years,13.5,17.5,M,g/dL,SYSMEX XT 1000 / SLS,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMOGLOBINA / HEMOGLOBIN,hemoglobin,18,,,Years,12.0,16.0,F,g/dL,SYSMEX XT 1000 / SLS,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,HEMOGLOBINA CORPUSCULAR MEDIA / Mean Corpuscular Hemoglobin (MCH),mch,18,,,Years,26.0,34.0,M/F,pg,SYSMEX XT-1000,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,LEUCOCITOS TOTALES / White Blood Cell Count (WBC) / TOTAL LEUKOCYTES,wbc,18,,,Years,4.5,11.0,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,LINFOCITOS (%) / LYMPHOCYTES (%),lymphocytes_percent,18,,,Years,24.0,44.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,LINFOCITOS absolutos (10^3/uL) / Absolute LYMPHOCYTES (10^3/uL),lymphocytes_absolute,17,,,Years,1.0,4.8,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,MONOCITOS (%) / MONOCYTES (%),monocytes_percent,1,,,Years,3.0,6.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,MONOCITOS absolutos (10^3/uL) / Absolute MONOCYTES (10^3/uL),monocytes_absolute,0,,,All ages,0.0,0.9,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,Metamielocitos (%) / Metamyelocyte (%),metamyelocytes_percent,0,150,,Years,0.0,0.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,Metamielocitos (10^3/uL) / Metamyelocyte (10^3/uL),metamyelocytes_absolute,0,150,,Years,0.0,0.0,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,Mielocitos (%) / Myelocyte (%),myelocytes_percent,0,150,,Years,0.0,0.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,Mielocitos absolutos (10^3/uL) / Myelocyte absolute (10^3/uL),myelocytes_absolute,0,150,,Years,0.0,0.0,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,NEUTRÓFILOS ABASTONADOS (%) / BANDS %,bands_percent,13,,,Years,0.0,5.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,NEUTRÓFILOS ABASTONADOS absolutos (10^3/uL) / Absolute BANDS (10^3/uL),bands_absolute,13,,,Years,0.0,0.5,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,NEUTRÓFILOS SEGMENTADOS (%) / SEGMENTED NEUTROPHILS (%),segmented_neutrophils_percent,18,,,Years,35.0,66.0,M/F,%,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,NEUTRÓFILOS SEGMENTADOS absolutos (10^3/uL) / SEGMENTED NEUTROPHILS absolute (10^3/uL),segmented_neutrophils_absolute,18,,,Years,1.8,7.7,M/F,10^3/uL,SYSMEX XN-1000 CITOMETRÍA FLUJO FLUORESCENTE / Fluorescent flow cytometry,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,NEUTRÓFILOS TOTALES (ANC) (10^3/uL) / TOTAL NEUTROPHILS (10^3/uL),anc,18,,,Years,1.8,8.2,M/F,10^3/uL,SYSMEX XN-1000,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,"PLAQUETAS, recuento / PLATELETS COUNT",platelets,18,,,Years,150.0,350.0,M/F,10^3/uL,SYSMEX XT-1000 / CD-EH,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,VOLUMEN CORPUSCULAR MEDIO / Mean Corpuscular Volume (VCM/MCV),mcv,18,,,Years,80.0,100.0,M/F,fL,CÁLCULO,SANGRE TOTAL / TOTAL BLOOD,,,
+Hemograma,MPV (VOLUMEN PLAQUETARIO MEDIO) / Mean Platelet Volume (MPV),mpv,,,,Both,7.5,11.5,M/F,fL,CÁLCULO-SYSMEX XT-1000,SANGRE TOTAL / TOTAL BLOOD,,,
+Microbiologia,COLOR / COLOR,urine_color,,,,,,,,,Organoléptica / Organoleptic,ORINA / URINE,,AMARILLO / YELLOW,
+Microbiologia,ASPECTO / CLARITY,urine_clarity,,,,,,,,,Organoléptica / Organoleptic,ORINA / URINE,,TRANSPARENTE / TRANSPARENT,
+Microbiologia,DENSIDAD / SPECIFIC GRAVITY,urine_specific_gravity,,,,,1.01,1.035,,,Lectura Automatizada / Automatic reader,ORINA / URINE,,,
+Microbiologia,pH / pH,urine_ph,,,,,5.0,6.0,,,Lectura Automatizada / Automatic reader,ORINA / URINE,,,
+Microbiologia,PROTEÍNAS / PROTEINS,urine_protein,,,,,0,10,,mg/dL,Lectura Automatizada / Automatic reader,ORINA / URINE,,,Trazas o huellas se consideran dentro del valor referencial / Traces are considered within the reference value.
+Microbiologia,GLUCOSA / GLUCOSE,urine_glucose,,,,,,,,,Lectura Automatizada / Automatic reader,ORINA / URINE,,NA,Stored exactly as shown in the supplied reference table; no interpretation of NA was assumed.
+Microbiologia,CUERPOS CETÓNICOS / KETONE BODIES,urine_ketones,,,,,0,5,,mg/dL,Lectura Automatizada / Automatic reader,ORINA / URINE,,,
+Microbiologia,BILIRRUBINA / BILIRUBIN,urine_bilirubin,,,,,,,,,Lectura Automatizada / Automatic reader,ORINA / URINE,,NA,Stored exactly as shown in the supplied reference table; no interpretation of NA was assumed.
+Microbiologia,UROBILINÓGENO / URIBILINOGEN,urine_urobilinogen,,,,,0,1,,mg/dL,Lectura Automatizada / Automatic reader,ORINA / URINE,,,Trazas o huellas se consideran dentro del valor referencial / Traces are considered within the reference value.
+Microbiologia,ERY- HEMOGLOBINA / ERYTHROCYTE,urine_erythrocyte_strip,,,,,0,9,,Eri/uL,Lectura Automatizada / Automatic reader,ORINA / URINE,,,
+Microbiologia,LEUCOCITOS / LEUKOCYTES,urine_leukocytes_strip,,,,,0,10,,Leu/uL,Lectura Automatizada / Automatic reader,ORINA / URINE,,,
+Microbiologia,NITRITOS / NITRITES,urine_nitrites,,,,,,,,,Lectura Automatizada / Automatic reader,ORINA / URINE,,NA,Stored exactly as shown in the supplied reference table; no interpretation of NA was assumed.
+Microbiologia,Leucocitos / leukocytes (WBC) - sedimento urinario,urine_wbc_sediment,,,,,0,5,,cells/HPF,Examen microscópico de sedimento urinario / Microscopic urine sediment examination (40x objective),ORINA / URINE,,,
+Microbiologia,Hematíes / Red blood cells (RBC) - sedimento urinario,urine_rbc_sediment,,,,,0,2,,cells/HPF,Examen microscópico de sedimento urinario / Microscopic urine sediment examination (40x objective),ORINA / URINE,,,
+Microbiologia,Células epiteliales transicionales / Transitional epithelial cells,urine_transitional_epithelial_cells,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), moderate (moderado), or many (muchos)","These are reporting categories shown by the source, not a numeric reference interval."
+Microbiologia,Células epiteliales escamosas / Squamous epithelial cells,urine_squamous_epithelial_cells,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), moderate (moderado), or many (muchos)","These are reporting categories shown by the source, not a numeric reference interval."
+Microbiologia,Cristales / Crystals,urine_crystals,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), moderate (moderado), or many (muchos)","These are reporting categories shown by the source, not a numeric reference interval."
+Microbiologia,Cilindros hialinos / Hyaline casts,urine_hyaline_casts,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), moderate (moderado), or many (muchos)","These are reporting categories shown by the source, not a numeric reference interval."
+Microbiologia,Cilindros hemáticos / Hematic casts,urine_hematic_casts,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), moderate (moderado), or many (muchos)","These are reporting categories shown by the source, not a numeric reference interval."
+Microbiologia,Cilindros granulosos / Granular casts,urine_granular_casts,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), moderate (moderado), or many (muchos)","These are reporting categories shown by the source, not a numeric reference interval."
+Microbiologia,Gérmenes / Germs,urine_germs,,,,,,,,,Examen microscópico de sedimento urinario / Microscopic urine sediment examination,ORINA / URINE,,"few (escaso), regular amount (regular cantidad), abundant (abundante)","These are reporting categories shown by the source, not a numeric reference interval."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,,,,2.0,M,mIU/mL,A-ECLIA,SUERO,Hombres,< 2.0,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,,,,5.3,F,mIU/mL,A-ECLIA,SUERO,Mujeres premenopáusicas,<= 5.3,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,,,,8.3,F,mIU/mL,A-ECLIA,SUERO,Mujeres postmenopáusicas,<= 8.3,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,3,Weeks,5.8,71.2,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 3,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,4,Weeks,9.5,750,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 4,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,5,Weeks,2170,7138,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 5,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,6,Weeks,158,31795,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 6,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,7,Weeks,3697.0,163563,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 7,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,8,Weeks,32065,149571,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 8,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,9,Weeks,63803,151410,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 9,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,10,Weeks,46509,186977,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 10,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,12,Weeks,27832,210612,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 12,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,14,Weeks,13950,65230,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 14,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,16,Weeks,9040,56451,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 16,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+HCG,HCG SUB UNIDAD BETA,beta_hcg,,,18,Weeks,8099,58176,F,mIU/mL,A-ECLIA,SUERO,Gestación - semana 18,,"En algunas enfermedades neoplásicas es posible encontrar cifras superiores a 7 mIU/mL. El documento menciona como ejemplos coriocarcinoma, tumor de saco vitelino, enfermedad trofoblástica gestacional y mola."
+Electrolitos,POTASIO,potassium,17,61,,Years,3.3,5.1,M/F,mEq/L,ISE,Suero,,,
+Electrolitos,POTASIO,potassium,62,130,,Years,3.7,5.4,M/F,mEq/L,ISE,Suero,,,
+Electrolitos,SODIO,sodium,17,66,,Years,133,145,M/F,mEq/L,ISE,Suero,,,
+Electrolitos,SODIO,sodium,67,130,,Years,132,146,M/F,mEq/L,ISE,Suero,,,
+Electrolitos,CLORO,chloride,17,65,,Years,96,108,M/F,mEq/L,ISE,Suero,,,
+Electrolitos,CLORO,chloride,66,130,,Years,94,110,M/F,mEq/L,ISE,Suero,,,
+Calcio,CALCIO SERICO,serum_calcium,12,17,,Years,8.4,10.2,M/F,mg/dL,O-CRESOLFTALEINA COMPLEXONA,Suero,,,
+Calcio,CALCIO SERICO,serum_calcium,18,59,,Years,8.6,10.0,M/F,mg/dL,O-CRESOLFTALEINA COMPLEXONA,Suero,,,
+Calcio,CALCIO SERICO,serum_calcium,60,89,,Years,8.8,10.2,M/F,mg/dL,O-CRESOLFTALEINA COMPLEXONA,Suero,,,
+Calcio,CALCIO SERICO,serum_calcium,,,,Years,8.2,9.6,M/F,mg/dL,O-CRESOLFTALEINA COMPLEXONA,Suero,Edad > 90 años,,
+Transaminasa,TRANSAMINASA PIRUVICA (ALT),alt,18,130,,Years,0,50,M,U/L,IFCC,Suero,,,
+Transaminasa,TRANSAMINASA PIRUVICA (ALT),alt,18,130,,Years,0,35,F,U/L,IFCC,Suero,,,
+Transaminasa,TRANSAMINASA OXALACETICA (AST),ast,18,130,,Years,0,50,M,U/L,IFCC,Suero,,,
+Transaminasa,TRANSAMINASA OXALACETICA (AST),ast,18,130,,Years,0,35,F,U/L,IFCC,Suero,,,
+Bioquimica,ACIDO URICO / URIC ACID,uric_acid,18,130,,Years,3.4,7.0,M,mg/dL,URICASA POD,Suero,,,
+Bioquimica,ACIDO URICO / URIC ACID,uric_acid,18,130,,Years,2.4,5.7,F,mg/dL,URICASA POD,Suero,,,
+Bioquimica,ALBUMINA,albumin,18,130,,Years,3.5,5.2,M/F,g/dL,COLORIMETRIA,Suero,,,
+Bioquimica,AMILASA / AMYLASE,amylase,18,130,,Years,28,100,M/F,U/L,IFCC,Suero,,,
+Bioquimica,BILIRRUBINA INDIRECTA sérica,indirect_bilirubin,0,130,,Years,0.1,1.0,M/F,mg/dL,PDP,Suero,,,
+Bioquimica,BILIRRUBINA DIRECTA sérica,direct_bilirubin,0,130,,Years,0,0.3,M/F,mg/dL,PDP,Suero,,,
+Bioquimica,BILIRRUBINA TOTAL sérica,total_bilirubin,18,130,,Years,,1.2,M/F,mg/dL,PDP,Suero,,<= 1.2,
+Bioquimica,COLESTEROL,total_cholesterol,18,130,,Years,,,M/F,mg/dL,Enzimatico Colorimetrico,Suero,,Nivel deseable < 200; nivel elevado límite 200-239; nivel alto >= 240,
+Bioquimica,CPK FRACCION MB,ck_mb,0,130,,Years,7,25,M/F,U/L,IFCC,Suero,,,
+Bioquimica,Creatinfosfokinasa (CPK),cpk,18,130,,Years,20,200,M,U/L,IFCC,Suero,,,
+Bioquimica,Creatinfosfokinasa (CPK),cpk,18,130,,Years,20,180,F,U/L,IFCC,Suero,,,
+Bioquimica,CREATININA,creatinine,15,130,,Years,0.7,1.2,M,mg/dL,Jaffe Cinetico y Compensado,Suero,,,
+Bioquimica,CREATININA,creatinine,15,130,,Years,0.5,0.9,F,mg/dL,Jaffe Cinetico y Compensado,Suero,,,
+Bioquimica,DESHIDROGENASA LACTICA,ldh,16,130,,Years,135,214,F,U/L,P-L (DGKC),Suero,,,
+Bioquimica,DESHIDROGENASA LACTICA,ldh,16,130,,Years,135,225,M,U/L,P-L (DGKC),Suero,,,
+Bioquimica,FOSFATASA ALCALINA,alkaline_phosphatase,17,130,,Years,40,129,M,U/L,IFCC,Suero,,,
+Bioquimica,FOSFATASA ALCALINA,alkaline_phosphatase,17,130,,Years,35,104,F,U/L,IFCC,Suero,,,
+Bioquimica,FOSFORO,phosphorus,18,150,,Years,2.5,4.5,M/F,mg/dL,Phosphomolybdate,Suero,,,
+Bioquimica,GAMMA GLUTAMIL TRANSPEPTIDASA,ggt,16,130,,Years,8,32,F,U/L,IFCC,Suero,,,
+Bioquimica,GAMMA GLUTAMIL TRANSPEPTIDASA,ggt,16,130,,Years,8,50,M,U/L,IFCC,Suero,,,
+Bioquimica,GLOBULINA,globulin,18,130,,Years,2.3,3.5,M/F,g/dL,SN-CAL,Suero,,,
+Bioquimica,GLUCOSA,glucose,18,59,,Years,74,106,M/F,mg/dL,HEXOQUINASA,Suero,,,
+Bioquimica,GLUCOSA,glucose,60,90,,Years,82,115,M/F,mg/dL,HEXOQUINASA,Suero,,,
+Bioquimica,GLUCOSA,glucose,91,130,,Years,75,121,M/F,mg/dL,HEXOQUINASA,Suero,,,
+Bioquimica,FORMULA COCKCROFT GAULT,cockcroft_gault,18,130,,Years,50,70,M,mL/min/1.73m2SC,jaffet cinetico y compensado,Suero,,,
+Bioquimica,FORMULA COCKCROFT GAULT,cockcroft_gault,18,130,,Years,56,84,F,mL/min/1.73m2SC,jaffet cinetico y compensado,Suero,,,
+Bioquimica,UREA,urea,14,19,,Years,18,45,M/F,mg/dL,GLDH UREASA,Suero,,,
+Bioquimica,UREA,urea,20,130,,Years,16.6,48.5,M/F,mg/dL,GLDH UREASA,Suero,,,
+Bioquimica,TRIGLICERIDOS,triglycerides,0,130,,Years,,,M/F,mg/dL,GOP.PAP,Suero,,Nivel deseable < 150; nivel intermedio 150-199; nivel elevado 200-499; nivel muy elevado > 500,
+Bioquimica,VLDL COLESTEROL,vldl_cholesterol,0,130,,Years,20,42,M/F,mg/dL,CAL,Suero,,,
+Bioquimica,PROTEINA C REACTIVA,crp,0,130,,Years,,,M/F,mg/L,INMUNOTURBIDIMETRIA,Suero,,NEGATIVO: < 5.0 mg/L; POSITIVO: >= 5.0 mg/L,
+Bioquimica,PROTEINAS TOTALES,total_protein,3,18,,Years,6.0,8.0,M/F,g/dL,Biuret,Suero,,,
+Bioquimica,PROTEINAS TOTALES,total_protein,18,130,,Years,6.4,8.3,M/F,g/dL,Biuret,Suero,,,
+Bioquimica,LDL Colesterol,ldl_cholesterol,18,130,,Years,,,M/F,mg/dL,SULFATO DE DEXTRANO,Suero,,Nivel deseable < 100; cercano al deseable 100-129; nivel elevado 130-159; nivel intermedio 160-189; nivel muy elevado >= 190,
+Bioquimica,LIPASA,lipase,0,130,,Years,13,60,M/F,U/L,MAN-CIN,Suero,,,
+Bioquimica,NITROGENO UREICO (BUN) / UREA NITROGEN (CALCULATED),bun,18,60,,Years,6,20,M/F,mg/dL,Calculo x Urea,Suero,,,
+Bioquimica,NITROGENO UREICO (BUN) / UREA NITROGEN (CALCULATED),bun,61,130,,Years,8,23,M/F,mg/dL,Calculo x Urea,Suero,,,
+Bioquimica,HDL Colesterol,hdl_cholesterol,0,130,,Years,,,M/F,mg/dL,SULFATO DE DEXTRANO,Suero,,Nivel deseable >= 60; nivel intermedio 40-59; nivel bajo < 40,
+Bioquimica,INSULINA,insulin,0,130,,Years,2.6,24.9,M/F,uU/mL,A-E-ECLIA,Suero,,,
+Bioquimica,MAGNESIO,magnesium,0,20,,Years,1.7,2.3,M/F,mg/dL,Azul de Xilidil,Suero,,,
+Bioquimica,MAGNESIO,magnesium,21,60,,Years,1.6,2.6,M/F,mg/dL,Azul de Xilidil,Suero,,,
+Bioquimica,MAGNESIO,magnesium,61,90,,Years,1.6,2.4,M/F,mg/dL,Azul de Xilidil,Suero,,,
+Bioquimica,MAGNESIO,magnesium,91,130,,Years,1.7,2.3,M/F,mg/dL,Azul de Xilidil,Suero,,,
+Tiroideo total,TSH ULTRASENSIBLE,tsh,11,20,,Years,0.51,4.3,M/F,uUI/mL,A-E-ECLIA,Suero,,,
+Tiroideo total,TSH ULTRASENSIBLE,tsh,21,150,,Years,0.27,4.2,M/F,uUI/mL,A-E-ECLIA,Suero,,,
+Tiroideo total,TSH ULTRASENSIBLE,tsh,20,39,,Years,0.52,5.09,F,uUI/mL,A-E-ECLIA,Suero,Women with contraceptive,,
+Tiroideo total,TSH ULTRASENSIBLE,tsh,40,69,,Years,0.3,2.88,F,uUI/mL,A-E-ECLIA,Suero,Women with contraceptive,,
+Tiroideo total,T3,t3_total,11,20,,Years,0.91,2.18,M/F,ng/mL,A-ECLIA,Suero,,,
+Tiroideo total,T3,t3_total,21,40,,Years,0.85,1.49,M,ng/mL,A-ECLIA,Suero,,,
+Tiroideo total,T3,t3_total,41,150,,Years,0.76,1.58,M,ng/mL,A-ECLIA,Suero,,,
+Tiroideo total,T3,t3_total,21,40,,Years,0.72,1.85,F,ng/mL,A-ECLIA,Suero,,,
+Tiroideo total,T3,t3_total,41,150,,Years,0.74,1.56,F,ng/mL,A-ECLIA,Suero,,,
+Tiroideo total,T3,t3_total,20,39,,Years,0.87,1.9,F,ng/mL,A-ECLIA,Suero,Women with contraceptive,,
+Tiroideo total,T3,t3_total,40,69,,Years,0.92,2.12,F,ng/mL,A-ECLIA,Suero,Women with contraceptive,,
+Tiroideo total,T4,t4_total,11,20,,Years,5.91,13.2,F,ug/dL,A-E-ECLIA,Suero,,,
+Tiroideo total,T4,t4_total,21,40,,Years,5.56,10.7,F,ug/dL,A-E-ECLIA,Suero,,,
+Tiroideo total,T4,t4_total,41,150,,Years,4.64,9.9,F,ug/dL,A-E-ECLIA,Suero,,,
+Tiroideo total,T4,t4_total,11,20,,Years,5.91,13.2,M,ug/dL,A-E-ECLIA,Suero,,,
+Tiroideo total,T4,t4_total,21,40,,Years,5.57,9.69,M,ug/dL,A-E-ECLIA,Suero,,,
+Tiroideo total,T4,t4_total,41,150,,Years,5.32,10.0,M,ug/dL,A-E-ECLIA,Suero,,,
+Tiroideo total,T4,t4_total,20,39,,Years,6.64,13.3,F,ug/dL,A-E-ECLIA,Suero,Women with contraceptive,,
+Tiroideo total,T4,t4_total,40,69,,Years,5.88,13.0,F,ug/dL,A-E-ECLIA,Suero,Women with contraceptive,,
+Virales,HEPATITIS B ANTIGENO AUSTRALIANO,hepatitis_b_surface_antigen,0,130,,Years,,,M/F,Index,A-ECLIA,Suero,,NEGATIVO: < 1.0; POSITIVO: >= 1.0,
+Virales,HEPATITIS C HCV 3RA GENERACION,hepatitis_c_antibody,0,130,,Years,,,M/F,Index,A-ECLIA,Suero,,NEGATIVO: < 1.0; POSITIVO: >= 1.0,"Los anticuerpos anti-HCV no permiten distinguir entre infección activa (viremia) e infección resuelta. Los resultados positivos deben confirmarse por PCR-RT. El documento indica una ventana inmunológica de aproximadamente 45 a 88 días y recomienda PCR-RT confirmatorio y/o repetir la prueba en 45-60 días en resultados indeterminados o débilmente positivos, según el caso clínico."
+Virales,HIV ANTIGENO- ANTICUERPO,hiv_antigen_antibody,0,150,,Years,,,M/F,,A-ECLIA,Suero,,POSITIVO: >= 1.00; ZONA GRIS: 0.90-0.99; NEGATIVO: < 0.90,

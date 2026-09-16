@@ -1,101 +1,131 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
 from .events import Event, GRADED, NORMAL
 
 
 @dataclass
-class Hemograma:
-    hemoglobina: float | None = None
-    hematocrito: float | None = None
-    hematies: float | None = None
-    volumen_corpuscular_medio: float | None = None
-    hemoglobina_corpuscular_media: float | None = None
-    concentracion_hemoglobina_corpuscular: float | None = None
-    rdw_pct: float | None = None
-    rdw_sd: float | None = None
-    leucocitos_totales: float | None = None
-    eosinofilos_pct: float | None = None
-    basofilos_pct: float | None = None
-    linfocitos_pct: float | None = None
-    monocitos_pct: float | None = None
-    neutrofilos_segmentados_pct: float | None = None
-    bastones_pct: float | None = None
-    eosinofilos_abs: float | None = None
-    basofilos_abs: float | None = None
-    linfocitos_abs: float | None = None
-    monocitos_abs: float | None = None
-    neutrofilos_segmentados_abs: float | None = None
-    bastones_abs: float | None = None
-    recuento_plaquetas: float | None = None
-    volumen_plaquetario_medio: float | None = None
-    neutrofilos_totales_anc: float | None = None
+class LabResult:
+    """One laboratory analyte parsed from a PDF.
+
+    The CSV-driven reader is the source of truth for analyte identity,
+    reference interval, units, method, sample type, and category.
+    """
+
+    canonical_name: str
+    test_name: str
+    value: float | str
+    category: str | None = None
+    unit: str | None = None
+    reference_low: float | None = None
+    reference_high: float | None = None
+    reference_text: str | None = None
+    reference_condition: str | None = None
+    reference_notes: str | None = None
+    status: str | None = None
+    method: str | None = None
+    sample_type: str | None = None
+
+    @property
+    def is_numeric(self) -> bool:
+        return isinstance(self.value, (int, float)) and not isinstance(self.value, bool)
+
+    @property
+    def is_out_of_range(self) -> bool:
+        return self.status in {"LOW", "HIGH", "POSITIVE", "GRAY_ZONE"}
+
+    @property
+    def direction(self) -> str | None:
+        if self.status == "LOW":
+            return "low"
+        if self.status in {"HIGH", "POSITIVE"}:
+            return "high"
+        return None
+
+    @property
+    def display_name(self) -> str:
+        return self.test_name or self.canonical_name.replace("_", " ").title()
+
+    @property
+    def reference_range(self) -> tuple[float | None, float | None]:
+        return self.reference_low, self.reference_high
 
     def __str__(self) -> str:
-        lines = ["Hemograma:"]
-        for f in fields(self):
-            lines.append(f"  {f.name} = {getattr(self, f.name)}")
-        return "\n".join(lines)
+        unit = f" {self.unit}" if self.unit else ""
+        status = f" [{self.status}]" if self.status else ""
+
+        if self.reference_low is not None or self.reference_high is not None:
+            low = "-∞" if self.reference_low is None else f"{self.reference_low:g}"
+            high = "∞" if self.reference_high is None else f"{self.reference_high:g}"
+            reference = f" ref=[{low}, {high}]"
+        elif self.reference_text:
+            reference = f" ref={self.reference_text}"
+        else:
+            reference = ""
+
+        return f"{self.canonical_name}: {self.value}{unit}{reference}{status}"
 
 
 @dataclass
 class MedicalExam:
-    """One draw. Holds raw values AND the events derived from them.
+    """One blood/urine draw and all analytes found in its PDF."""
 
-    Note: the single-field wrapper classes (TransaminasaPiruvica etc.) were
-    dropped -- a dataclass wrapping one float adds an attribute hop and buys
-    nothing. If you need units per analyte, put them on the exam.
-    """
-
-    hemograma: Hemograma = field(default_factory=Hemograma)
-    glucosa: float | None = None
-    transaminasa_piruvica: float | None = None      # TGP / ALT
-    transaminasa_oxalacetica: float | None = None   # TGO / AST
     fecha_toma_muestra: datetime | None = None
+    results: dict[str, LabResult] = field(default_factory=dict)
 
-    # Baseline status governs how CTCAE grades ALT/AST. None => not gradeable.
+    # Clinical context used by CTCAE. This is not a laboratory reference range.
     baseline_normal: bool | None = None
 
+    # CTCAE events are derived from results.
     events: list[Event] = field(default_factory=list, repr=False)
 
-    # Out-of-range markers vs the lab's own reference intervals. Distinct from
-    # events: "abnormal" is a lab signal, not necessarily a CTCAE finding.
-    range_flags: list = field(default_factory=list, repr=False)
+    def add_result(self, result: LabResult) -> None:
+        self.results[result.canonical_name] = result
 
-    # -- event tracking ----------------------------------------------------
-    def add_event(self, ev: Event) -> None:
-        self.events.append(ev)
+    def get_result(self, canonical_name: str) -> LabResult | None:
+        return self.results.get(canonical_name)
+
+    def get_value(self, canonical_name: str, default: Any = None) -> Any:
+        result = self.results.get(canonical_name)
+        return result.value if result is not None else default
+
+    @property
+    def range_flags(self) -> list[LabResult]:
+        return [result for result in self.results.values() if result.is_out_of_range]
+
+    def add_event(self, event: Event) -> None:
+        self.events.append(event)
 
     def clear_events(self) -> None:
-        """Events are derived data. Re-grading must not append to stale ones."""
         self.events.clear()
 
     @property
     def flagged(self) -> list[Event]:
-        """Only real CTCAE grades >= 1, worst first."""
-        return sorted((e for e in self.events if e.is_flagged),
-                      key=lambda e: -(e.grade or 0))
+        return sorted((event for event in self.events if event.is_flagged), key=lambda event: -(event.grade or 0))
 
     @property
     def needs_review(self) -> list[Event]:
-        return [e for e in self.events if e.needs_review]
+        return [event for event in self.events if event.needs_review]
 
     @property
     def worst_grade(self) -> int:
-        return max((e.grade for e in self.events
-                    if e.status in (GRADED, NORMAL) and e.grade is not None),
-                   default=0)
+        return max((event.grade for event in self.events if event.status in (GRADED, NORMAL) and event.grade is not None), default=0)
 
     def __str__(self) -> str:
-        if not self.events:
-            return "MedicalExam: (not graded)"
-        lines = [f"MedicalExam  worst grade: {self.worst_grade}"]
-        lines += [f"  {e}" for e in self.flagged] or ["  (nothing flagged)"]
-        if self.needs_review:
-            lines.append("  requires review:")
-            lines += [f"    {e}" for e in self.needs_review]
+        lines = [f"MedicalExam: {len(self.results)} laboratory results"]
+
+        if self.fecha_toma_muestra is not None:
+            lines[0] += f" @ {self.fecha_toma_muestra}"
+
+        lines.extend(f"  {result}" for result in self.results.values())
+
+        if self.events:
+            lines.append(f"CTCAE worst grade: {self.worst_grade}")
+            lines.extend(f"  {event}" for event in self.flagged)
+
         return "\n".join(lines)
 
 
@@ -113,12 +143,12 @@ class Patient:
 
     @property
     def all_events(self) -> list[Event]:
-        return [e for x in self.medical_records for e in x.events]
+        return [event for exam in self.medical_records for event in exam.events]
 
     @property
     def flagged(self) -> list[Event]:
-        return [e for e in self.all_events if e.is_flagged]
+        return [event for event in self.all_events if event.is_flagged]
 
     @property
     def worst_grade(self) -> int:
-        return max((x.worst_grade for x in self.medical_records), default=0)
+        return max((exam.worst_grade for exam in self.medical_records), default=0)

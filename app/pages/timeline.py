@@ -14,6 +14,48 @@ _GT = COLORS["grade_text"]
 def _bubble_css(bg: str, fg: str) -> str:
     return (f"background-color:{bg}; color:{fg}; border:none; border-radius:11px; font-size:12px; font-weight:700; padding:2px 9px;")
 
+def _format_number(value: float | int | None) -> str:
+    if value is None:
+        return "—"
+    return f"{value:g}"
+
+def _format_lab_value(result) -> str:
+    if result.is_numeric:
+        text = _format_number(float(result.value))
+    else:
+        text = str(result.value)
+
+    if result.unit:
+        text += f" {result.unit}"
+
+    return text
+
+def _format_reference(result) -> str:
+    low = result.reference_low
+    high = result.reference_high
+
+    if low is not None and high is not None:
+        return f"{_format_number(low)}–{_format_number(high)}"
+
+    if low is not None:
+        return f"≥ {_format_number(low)}"
+
+    if high is not None:
+        return f"≤ {_format_number(high)}"
+
+    if result.reference_text:
+        return result.reference_text
+
+    return "—"
+
+def _range_arrow(result) -> str:
+    if result.direction == "low":
+        return "↓"
+    if result.direction == "high":
+        return "↑"
+    if result.status == "GRAY_ZONE":
+        return "◆"
+    return "•"
 
 class Bubble(QLabel):
     def __init__(self, text: str, grade: int = 0, parent=None):
@@ -33,6 +75,7 @@ class ExamCard(QFrame):
 
         flagged = exam.flagged
         worst = exam.worst_grade
+        range_flags = exam.range_flags
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -53,7 +96,7 @@ class ExamCard(QFrame):
         hl.setContentsMargins(0, 0, 0, 0)
         hl.setSpacing(10)
 
-        when = coerce_date(getattr(exam, "fecha_toma_muestra", None))
+        when = coerce_date(exam.fecha_toma_muestra)
 
         self.chevron = QLabel("\u203a")
         self.chevron.setStyleSheet(f"color:{COLORS['text_mute']}; font-size:16px; border:none;")
@@ -81,45 +124,78 @@ class ExamCard(QFrame):
         n_lbl = QLabel(f"{len(flagged)} eventos")
         n_lbl.setStyleSheet(f"color:{COLORS['text_dim']}; font-size:12px; border:none;")
         hl.addWidget(n_lbl)
-        n_range = len(getattr(exam, "range_flags", []))
-        if n_range:
-            oor = QLabel(f"{n_range} fuera de rango")
+
+        if range_flags:
+            oor = QLabel(f"{len(range_flags)} fuera de rango")
             oor.setStyleSheet(f"color:{COLORS['text_mute']}; font-size:11px; border:none;")
             hl.addWidget(oor)
 
         bl.addWidget(header)
 
-        # ---- details -----------------------------------------------------
+        # Details
         self.details = QWidget()
         self.details.setStyleSheet("border:none;")
         dl = QVBoxLayout(self.details)
         dl.setContentsMargins(20, 12, 0, 2)
         dl.setSpacing(7)
 
-        range_flags = getattr(exam, "range_flags", [])
-
         if not flagged and not range_flags:
             empty = QLabel("Sin hallazgos.")
             empty.setStyleSheet(f"color:{COLORS['text_mute']}; font-size:12px; border:none;")
             dl.addWidget(empty)
-        for ev in flagged:
-            dl.addWidget(self._event_row(ev))
+
+        if flagged:
+            event_head = QLabel("CTCAE")
+            event_head.setStyleSheet(f"color:{COLORS['text_mute']}; font-size:10px; font-weight:700; letter-spacing:1px; border:none; padding-top:2px;")
+            dl.addWidget(event_head)
+
+            for event in flagged:
+                dl.addWidget(self._event_row(event))
 
         if range_flags:
             head = QLabel("FUERA DE RANGO (vs. referencia del laboratorio)")
             head.setStyleSheet(f"color:{COLORS['text_mute']}; font-size:10px; font-weight:700; letter-spacing:1px; border:none; padding-top:6px;")
             dl.addWidget(head)
-            for rf in range_flags:
-                arrow = "\u2193" if rf.direction == "low" else "\u2191"  # ↓ / ↑
-                row = QLabel(f"{arrow} {rf.field}: {rf.value:g}  "
-                             f"(ref {rf.low:g}\u2013{rf.high:g})")
-                row.setStyleSheet(f"color:{COLORS['text_dim']}; font-size:12px; border:none;")
-                dl.addWidget(row)
+
+            for result in range_flags:
+                dl.addWidget(self._lab_result_row(result))
 
         self.details.setVisible(False)
         bl.addWidget(self.details)
 
         header.mousePressEvent = self._toggle
+
+    def _lab_result_row(self, result) -> QLabel:
+        arrow = _range_arrow(result)
+        value_text = _format_lab_value(result)
+        reference_text = _format_reference(result)
+
+        row = QLabel(f"{arrow} {result.display_name}: {value_text}  (ref {reference_text})")
+        row.setWordWrap(True)
+        row.setStyleSheet(f"color:{COLORS['text_dim']}; font-size:12px; border:none;")
+
+        tooltip = [
+            f"Canonical name: {result.canonical_name}",
+            f"Status: {result.status or '—'}",
+        ]
+
+        if result.category:
+            tooltip.append(f"Category: {result.category}")
+
+        if result.method:
+            tooltip.append(f"Method: {result.method}")
+
+        if result.sample_type:
+            tooltip.append(f"Sample: {result.sample_type}")
+
+        if result.reference_condition:
+            tooltip.append(f"Reference condition: {result.reference_condition}")
+
+        if result.reference_notes:
+            tooltip.append(f"Reference notes: {result.reference_notes}")
+
+        row.setToolTip("\n".join(tooltip))
+        return row
 
     def _event_row(self, ev) -> QWidget:
         row = QWidget()
@@ -128,15 +204,23 @@ class ExamCard(QFrame):
         rl.setContentsMargins(0, 0, 0, 0)
         rl.setSpacing(10)
 
-        rl.addWidget(Bubble(f"G{ev.grade}", ev.grade))
+        grade = ev.grade or 0
+        rl.addWidget(Bubble(f"G{grade}", grade))
 
-        term = QLabel(ev.term)
+        term = QLabel(ev.term or ev.type or "CTCAE event")
         term.setStyleSheet(f"color:{COLORS['text']}; font-size:13px; font-weight:500; border:none;")
         rl.addWidget(term)
         rl.addStretch()
 
-        vtext = f"{ev.value:g} {ev.unit}" if isinstance(ev.value, (int, float)) else f"{ev.value} {ev.unit}"
-        val = QLabel(vtext)
+        if isinstance(ev.value, (int, float)):
+            value_text = f"{ev.value:g}"
+        else:
+            value_text = str(ev.value)
+
+        if ev.unit:
+            value_text += f" {ev.unit}"
+
+        val = QLabel(value_text)
         val.setStyleSheet(f"color:{COLORS['text_dim']}; font-size:13px; font-weight:600; border:none;")
         rl.addWidget(val)
 
@@ -187,11 +271,19 @@ class TimelineWidget(QScrollArea):
 
 
 def _sorted(exams: list) -> list:
-    """Dated exams newest-first; undated last, original order preserved."""
-    dated, undated = [], []
-    for i, e in enumerate(exams):
-        d = coerce_date(getattr(e, "fecha_toma_muestra", None))
-        (dated if d else undated).append((d, i, e))
-    dated.sort(key=lambda t: t[1])
-    dated.sort(key=lambda t: t[0], reverse=True)
-    return [t[2] for t in dated] + [t[2] for t in undated]
+    # Dated exams newest-first; undated exams last, original order preserved.
+    dated = []
+    undated = []
+
+    for index, exam in enumerate(exams):
+        date = coerce_date(exam.fecha_toma_muestra)
+
+        if date:
+            dated.append((date, index, exam))
+        else:
+            undated.append((date, index, exam))
+
+    dated.sort(key=lambda item: item[1])
+    dated.sort(key=lambda item: item[0], reverse=True)
+
+    return [item[2] for item in dated] + [item[2] for item in undated]

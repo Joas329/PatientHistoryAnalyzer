@@ -1,73 +1,115 @@
 # app/pages/trend_plot.py
-from .theme import COLORS
-from ..reference_ranges import LAB_REFERENCE
-from matplotlib.figure import Figure
-from PySide6.QtCore import QSize, QObject, QEvent
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QScrollArea, QFrame, QStyle, QApplication
+
+import math
+import re
 
 import matplotlib.dates as mdates
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from PySide6.QtCore import QEvent, QObject, QSize
+from PySide6.QtWidgets import QApplication, QComboBox, QFrame, QHBoxLayout, QLabel, QPushButton, QScrollArea, QStyle, QVBoxLayout, QWidget
 
-HEMO_MARKERS = {
-    "hemoglobina": ("Hemoglobina", "g/dL"),
-    "hemoglobina_corpuscular_media": ("HCM", "pg"),
-    "hematocrito": ("Hematocrito", "%"),
-    "hematies": ("Hematíes", "10^6/µL"),
-    "volumen_corpuscular_medio": ("VCM", "fL"),
-    "concentracion_hemoglobina_corpuscular": ("CHCM", "g/dL"),
-    "rdw_pct": ("RDW %", "%"),
-    "rdw_sd": ("RDW SD", "fL"),
-    "leucocitos_totales": ("Leucocitos", "10^3/µL"),
-    "eosinofilos_pct": ("Eosinófilos %", "%"),
-    "eosinofilos_abs": ("Eosinófilos", "10^3/µL"),
-    "basofilos_pct": ("Basófilos %", "%"),
-    "basofilos_abs": ("Basófilos", "10^3/µL"),
-    "linfocitos_pct": ("Linfocitos %", "%"),
-    "linfocitos_abs": ("Linfocitos", "10^3/µL"),
-    "monocitos_pct": ("Monocitos %", "%"),
-    "monocitos_abs": ("Monocitos", "10^3/µL"),
-    "neutrofilos_segmentados_pct": ("Neutrófilos seg %", "%"),
-    "neutrofilos_segmentados_abs": ("Neutrófilos seg", "10^3/µL"),
-    "neutrofilos_totales_anc": ("ANC", "10^3/µL"),
-    "bastones_pct": ("Bastones %", "%"),
-    "bastones_abs": ("Bastones", "10^3/µL"),
-    "recuento_plaquetas": ("Plaquetas", "10^3/µL"),
-    "volumen_plaquetario_medio": ("VPM", "fL"),
-}
+from .theme import COLORS
 
-CHEM_MARKERS = {
-    "glucosa": ("Glucosa", "mg/dL"),
-    "urea_serica": ("Urea", "mg/dL"),
-    "nitrogeno_ureico_bun": ("BUN", "mg/dL"),
-    "creatinina_serica": ("Creatinina", "mg/dL"),
-    "transaminasa_piruvica": ("ALT", "U/L"),
-    "transaminasa_oxalacetica": ("AST", "U/L"),
-    "bilirrubina_total": ("Bilirrubina total", "mg/dL"),
-    "bilirrubina_indirecta": ("Bilirrubina indirecta", "mg/dL"),
-    "bilirrubina_directa": ("Bilirrubina directa", "mg/dL"),
-    "fosfatasa_alcalina": ("Fosfatasa alcalina", "U/L"),
-    "proteinas_totales": ("Proteínas totales", "g/dL"),
-    "albumina": ("Albúmina", "g/dL"),
-    "calcio_serico": ("Calcio", "mg/dL"),
-    "fosforo_serico": ("Fósforo", "mg/dL"),
-    "sodio": ("Sodio", "mEq/L"),
-    "potasio": ("Potasio", "mEq/L"),
-    "cloro": ("Cloro", "mEq/L"),
-    "bicarbonato_serico": ("Bicarbonato", "mEq/L"),
-}
-
-HEMO_ATTRS = set(HEMO_MARKERS)
-MARKERS = {**HEMO_MARKERS, **CHEM_MARKERS}
 
 _SERIES_COLOR = "#4fd6be"
-_BAND_COLOR = "#3ddc84"     # normal-range band
-_BAD_POINT = "#f7768e"      # points outside the range
+_BAND_COLOR = "#3ddc84"
+_BAD_POINT = "#f7768e"
 _DEFAULT_ROWS = 3
 _ROW_MIN_HEIGHT = 260
 
-def _value(exam, attr):
-    obj = exam.hemograma if attr in HEMO_ATTRS else exam
-    return getattr(obj, attr, None)
+
+def _result(exam, canonical_name):
+    return exam.results.get(canonical_name)
+
+
+def _numeric_result(exam, canonical_name):
+    result = _result(exam, canonical_name)
+    if result is None or not result.is_numeric:
+        return None
+    return result
+
+
+def _clean_label(test_name: str | None, canonical_name: str) -> str:
+    if not test_name:
+        return canonical_name.replace("_", " ").title()
+
+    # Prefer the first (usually Spanish) name when the CSV contains
+    # bilingual names separated by " / ".
+    label = re.split(r"\s+/\s+", test_name, maxsplit=1)[0].strip()
+
+    # Do not show method annotations in the plot picker/title.
+    label = re.sub(r"\s*\((?:MÉTODO|METODO|METHOD)[^)]*\)\s*$", "", label, flags=re.IGNORECASE).strip()
+
+    return label or canonical_name.replace("_", " ").title()
+
+
+def _metadata_for(exams, canonical_name):
+    for exam in exams:
+        result = _result(exam, canonical_name)
+        if result is not None:
+            return {
+                "label": _clean_label(result.test_name, canonical_name),
+                "unit": result.unit or "",
+                "category": result.category or "",
+            }
+
+    return {
+        "label": canonical_name.replace("_", " ").title(),
+        "unit": "",
+        "category": "",
+    }
+
+
+def _is_bad(result) -> bool:
+    return result is not None and result.is_out_of_range
+
+def _outside_reference_fraction(result) -> float:
+    """Return normalized distance outside the selected lab reference interval."""
+    if result is None or not result.is_numeric:
+        return 0.0
+
+    value = float(result.value)
+    low = result.reference_low
+    high = result.reference_high
+
+    if low is not None and value < low:
+        return (float(low) - value) / max(abs(float(low)), 1e-12)
+
+    if high is not None and value > high:
+        return (value - float(high)) / max(abs(float(high)), 1e-12)
+
+    return 0.0
+
+def _trend_priority(exams, canonical_name):
+    """Score an analyte so the worst three trends are shown by default."""
+    results = []
+    ctcae_grade = 0
+
+    for exam in exams:
+        result = _numeric_result(exam, canonical_name)
+        if result is not None:
+            results.append(result)
+
+        for event in getattr(exam, "events", []):
+            if getattr(event, "type", None) == canonical_name and getattr(event, "grade", None) is not None:
+                ctcae_grade = max(ctcae_grade, int(event.grade))
+
+    if not results:
+        return (0, 0.0, 0, 0.0, 0.0)
+
+    excursions = [_outside_reference_fraction(result) for result in results]
+    abnormal_count = sum(1 for result in results if _is_bad(result))
+    abnormal_fraction = abnormal_count / len(results)
+    latest_excursion = excursions[-1] if excursions else 0.0
+
+    return (
+        ctcae_grade,
+        max(excursions, default=0.0),
+        abnormal_count,
+        abnormal_fraction,
+        latest_excursion,
+    )
 
 
 class _WheelForwarder(QObject):
@@ -78,18 +120,20 @@ class _WheelForwarder(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.Wheel:
             QApplication.sendEvent(self._target, event)
-            return True   # swallow it on the canvas; the viewport already handled it
+            return True
         return False
 
+
 class MarkerPlot(QFrame):
-    def __init__(self, attr, label, unit, exams, on_remove, wheel_target, ref_range=None):
+    def __init__(self, canonical_name, label, unit, exams, on_remove, wheel_target):
         super().__init__()
         self.setObjectName("Card")
         self.setMinimumHeight(_ROW_MIN_HEIGHT)
-        self.attr = attr
+
+        self.canonical_name = canonical_name
+        self.attr = canonical_name  # compatibility with the previous widget code
         self._exams = exams
         self._on_remove = on_remove
-        self._ref_range = ref_range   # (low, high) or None
 
         lay = QVBoxLayout(self)
         lay.setContentsMargins(12, 10, 12, 10)
@@ -97,8 +141,10 @@ class MarkerPlot(QFrame):
 
         head = QHBoxLayout()
         head.setSpacing(10)
+
         name = QLabel(label)
         name.setStyleSheet(f"font-size:14px; font-weight:700; color:{COLORS.get('text', '#e6e6e6')};")
+
         self.remove_button = QPushButton()
         self.remove_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
         self.remove_button.setIconSize(QSize(16, 16))
@@ -106,6 +152,7 @@ class MarkerPlot(QFrame):
         self.remove_button.setFlat(True)
         self.remove_button.setToolTip("Remove this plot")
         self.remove_button.clicked.connect(lambda: self._on_remove(self))
+
         head.addWidget(name)
         head.addStretch(1)
         head.addWidget(self.remove_button)
@@ -114,7 +161,7 @@ class MarkerPlot(QFrame):
         panel_bg = COLORS.get("panel", "#12161c")
         self.fig = Figure(figsize=(5, 2.4), facecolor=panel_bg)
         self.canvas = FigureCanvas(self.fig)
-        # let wheel events over the plot scroll the stack instead of being eaten
+
         self._wheel_forwarder = _WheelForwarder(wheel_target)
         self.canvas.installEventFilter(self._wheel_forwarder)
         lay.addWidget(self.canvas, 1)
@@ -130,58 +177,98 @@ class MarkerPlot(QFrame):
         ax = self.fig.add_subplot(111)
         ax.set_facecolor(panel_bg)
 
-        xs, ys = [], []
-        for e in self._exams:
-            v = _value(e, self.attr)
-            if v is not None:
-                xs.append(e.fecha_toma_muestra)
-                ys.append(v)
+        xs = []
+        ys = []
+        results = []
 
-        # normal-range band behind the series
-        if self._ref_range:
-            lo, hi = self._ref_range
-            ax.axhspan(lo, hi, color=_BAND_COLOR, alpha=0.12, zorder=0)
-            ax.axhline(lo, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
-            ax.axhline(hi, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+        for exam in self._exams:
+            result = _numeric_result(exam, self.canonical_name)
+            if result is None:
+                continue
+
+            xs.append(exam.fecha_toma_muestra)
+            ys.append(float(result.value))
+            results.append(result)
 
         if ys:
-            ax.plot(xs, ys, marker="o", markersize=5, linewidth=1.8, color=_SERIES_COLOR, zorder=2)
-            # highlight out-of-range points
-            if self._ref_range:
-                lo, hi = self._ref_range
-                bad = [(x, y) for x, y in zip(xs, ys) if y < lo or y > hi]
-                if bad:
-                    bx, by = zip(*bad)
-                    ax.plot(bx, by, "o", markersize=6, color=_BAD_POINT, zorder=3)
-        else:
-            ax.text(0.5, 0.5, "No data", ha="center", va="center", transform=ax.transAxes, color=dim, fontsize=9)
+            self._draw_reference_ranges(ax, xs, results)
 
-        if self._ref_range or ys:
-            lows, highs = [], []
-            if ys:
-                lows.append(min(ys)); highs.append(max(ys))
-            if self._ref_range:
-                lows.append(self._ref_range[0]); highs.append(self._ref_range[1])
-            ymin, ymax = min(lows), max(highs)
-            pad = (ymax - ymin) * 0.10 or (abs(ymax) * 0.10 or 1.0)
-            ax.set_ylim(ymin - pad, ymax + pad)
+            ax.plot(xs, ys, marker="o", markersize=5, linewidth=1.8, color=_SERIES_COLOR, zorder=3)
+
+            bad = [(x, y) for x, y, result in zip(xs, ys, results) if _is_bad(result)]
+            if bad:
+                bx, by = zip(*bad)
+                ax.plot(bx, by, "o", markersize=6, color=_BAD_POINT, zorder=4)
+
+            self._set_y_limits(ax, ys, results)
+        else:
+            ax.text(0.5, 0.5, "No numeric data", ha="center", va="center", transform=ax.transAxes, color=dim, fontsize=9)
 
         ax.set_ylabel(unit, color=dim, fontsize=8)
         ax.tick_params(colors=dim, labelsize=8)
+
         for spine in ax.spines.values():
             spine.set_color(grid_col)
+
         ax.grid(True, color=grid_col, alpha=0.35, linewidth=0.6)
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d %b"))
         self.fig.autofmt_xdate(rotation=30, ha="right")
         self.fig.subplots_adjust(left=0.13, right=0.97, top=0.94, bottom=0.26)
         self.canvas.draw_idle()
 
+    def _draw_reference_ranges(self, ax, xs, results):
+        lows = [result.reference_low for result in results]
+        highs = [result.reference_high for result in results]
+
+        numeric_pairs = [(lo, hi) for lo, hi in zip(lows, highs) if lo is not None and hi is not None]
+
+        # If all numeric references are the same, show the old-style flat band.
+        if numeric_pairs and len(numeric_pairs) == len(results) and len(set(numeric_pairs)) == 1:
+            lo, hi = numeric_pairs[0]
+            ax.axhspan(lo, hi, color=_BAND_COLOR, alpha=0.12, zorder=0)
+            ax.axhline(lo, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+            ax.axhline(hi, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+            return
+
+        # Reference intervals can change with age/sex/condition. Draw the
+        # actual range selected for each exam instead of using one global range.
+        low_values = [float(lo) if lo is not None else math.nan for lo in lows]
+        high_values = [float(hi) if hi is not None else math.nan for hi in highs]
+
+        if any(lo is not None for lo in lows):
+            ax.plot(xs, low_values, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+
+        if any(hi is not None for hi in highs):
+            ax.plot(xs, high_values, color=_BAND_COLOR, alpha=0.55, linewidth=0.8, linestyle="--", zorder=1)
+
+        if any(lo is not None and hi is not None for lo, hi in zip(lows, highs)):
+            ax.fill_between(xs, low_values, high_values, color=_BAND_COLOR, alpha=0.10, zorder=0)
+
+    def _set_y_limits(self, ax, ys, results):
+        bounds = list(ys)
+
+        for result in results:
+            if result.reference_low is not None:
+                bounds.append(float(result.reference_low))
+            if result.reference_high is not None:
+                bounds.append(float(result.reference_high))
+
+        if not bounds:
+            return
+
+        ymin = min(bounds)
+        ymax = max(bounds)
+        pad = (ymax - ymin) * 0.10 or (abs(ymax) * 0.10 or 1.0)
+        ax.set_ylim(ymin - pad, ymax + pad)
+
 
 class TrendPlotWidget(QWidget):
     def __init__(self):
         super().__init__()
+
         self._exams = []
         self._available = []
+        self._metadata = {}
         self._rows = []
 
         lay = QVBoxLayout(self)
@@ -190,12 +277,16 @@ class TrendPlotWidget(QWidget):
 
         controls = QHBoxLayout()
         controls.setSpacing(10)
+
         self.add_button = QPushButton("Add plot")
         self.add_button.setObjectName("Primary")
         self.add_button.clicked.connect(self._add_selected)
+
         marker_label = QLabel("Marker")
         marker_label.setObjectName("Key")
+
         self.add_combo = QComboBox()
+
         controls.addWidget(self.add_button)
         controls.addWidget(marker_label)
         controls.addWidget(self.add_combo, 1)
@@ -216,37 +307,49 @@ class TrendPlotWidget(QWidget):
         lay.addWidget(self.scroll, 1)
 
     def _shown_attrs(self):
-        return {r.attr for r in self._rows}
+        return {row.canonical_name for row in self._rows}
 
     def _refresh_combo(self):
-        """Rebuild the picker from available markers that aren't already plotted."""
         shown = self._shown_attrs()
-        remaining = [a for a in self._available if a not in shown]
+        remaining = [name for name in self._available if name not in shown]
 
         self.add_combo.blockSignals(True)
         self.add_combo.clear()
-        for attr in remaining:
-            self.add_combo.addItem(MARKERS[attr][0], attr)
+
+        for canonical_name in remaining:
+            meta = self._metadata[canonical_name]
+            label = meta["label"]
+
+            if meta["category"]:
+                label = f"{meta['category']} · {label}"
+
+            self.add_combo.addItem(label, canonical_name)
+
         self.add_combo.blockSignals(False)
 
-        # nothing left to add -> disable the control pair
         can_add = bool(remaining)
         self.add_combo.setEnabled(can_add)
         self.add_button.setEnabled(can_add)
 
-    def _add_row(self, attr):
-        if attr is None or attr in self._shown_attrs():
+    def _add_row(self, canonical_name):
+        if canonical_name is None or canonical_name in self._shown_attrs():
             return
-        label, unit = MARKERS[attr]
+
+        meta = self._metadata[canonical_name]
+
         row = MarkerPlot(
-            attr, label, unit, self._exams,
+            canonical_name,
+            meta["label"],
+            meta["unit"],
+            self._exams,
             on_remove=self._remove_row,
             wheel_target=self.scroll.viewport(),
-            ref_range=LAB_REFERENCE.get(attr),
         )
+
         self._rows.append(row)
         self.rows_layout.insertWidget(self.rows_layout.count() - 1, row)
         self._refresh_combo()
+
         return row
 
     def _add_selected(self):
@@ -262,18 +365,47 @@ class TrendPlotWidget(QWidget):
         for row in self._rows:
             self.rows_layout.removeWidget(row)
             row.deleteLater()
+
         self._rows.clear()
 
     def populate(self, patient):
-        exams = [e for e in patient.medical_records if e.fecha_toma_muestra is not None]
-        exams.sort(key=lambda e: e.fecha_toma_muestra)
+        exams = [exam for exam in patient.medical_records if exam.fecha_toma_muestra is not None]
+        exams.sort(key=lambda exam: exam.fecha_toma_muestra)
         self._exams = exams
 
-        self._available = [
-            attr for attr in MARKERS
-            if any(_value(e, attr) is not None for e in exams)
-        ]
+        # No hardcoded HEMO_MARKERS / CHEM_MARKERS. Any numeric analyte that the
+        # CSV-driven PDF reader placed in exam.results becomes plotable.
+        available = set()
+
+        for exam in exams:
+            for canonical_name, result in exam.results.items():
+                if result.is_numeric:
+                    available.add(canonical_name)
+
+        self._metadata = {name: _metadata_for(exams, name) for name in available}
+
+        # Stable, human-friendly ordering for the picker.
+        self._available = sorted(
+            available,
+            key=lambda name: (
+                self._metadata[name]["category"].casefold(),
+                self._metadata[name]["label"].casefold(),
+            ),
+        )
+
+        # Initial view: show the worst three trends seen so far.
+        default_markers = sorted(
+            available,
+            key=lambda name: (
+                _trend_priority(exams, name),
+                self._metadata[name]["label"].casefold(),
+            ),
+            reverse=True,
+        )[:_DEFAULT_ROWS]
 
         self._clear_rows()
-        for attr in self._available[:_DEFAULT_ROWS]:
-            self._add_row(attr)
+
+        for canonical_name in default_markers:
+            self._add_row(canonical_name)
+
+        self._refresh_combo()
