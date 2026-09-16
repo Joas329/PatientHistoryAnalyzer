@@ -75,14 +75,15 @@ class EnrollPatientPage(QWidget):
         self.age_value = QLabel("—")
         self.gender_value = QLabel("—")
         self.records_value = QLabel("—")
-        for key, val in (("Age", self.age_value), ("Sex", self.gender_value), ("Exams", self.records_value)):
+
+        for key, value in (("Age", self.age_value), ("Sex", self.gender_value), ("Exams", self.records_value)):
             row = QHBoxLayout()
-            k = QLabel(key)
-            k.setObjectName("Key")
-            k.setFixedWidth(90)
-            val.setObjectName("Value")
-            row.addWidget(k)
-            row.addWidget(val, 1)
+            label = QLabel(key)
+            label.setObjectName("Key")
+            label.setFixedWidth(90)
+            value.setObjectName("Value")
+            row.addWidget(label)
+            row.addWidget(value, 1)
             grid.addLayout(row)
         pl.addLayout(grid)
         pl.addSpacing(20)
